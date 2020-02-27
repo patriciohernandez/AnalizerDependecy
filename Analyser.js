@@ -18,6 +18,7 @@ module.exports = class Analyser {
             const pagesResult = csvLinesContent.map(async (elem) => {
                 try {
                     const line = elem.split(',');
+                    if (line.length != 2) {return}
                     const website = line[0].trim();
                     const direction = line[1].trim();
                     const page = await getPage(direction);
@@ -129,12 +130,15 @@ const getLengthOfPageInBytes = (page) => {
             charsetPage.charset = element.attribs.charset;
             charsetPage.specified  = 'Yes';
             return;
-        } else if (element.attribs.content.split(';').find(p => p.match('charset')) != undefined) {
+        } 
+        else 
+        if (element.attribs.content !=  undefined  && element.attribs.content.split(';').find(p => p.match('charset')) != undefined) {
             const charsetInContent = element.attribs.content.split(';').find(p => p.match('charset')).split('=')[1];
             charsetPage.charset = charsetInContent;
             charsetPage.specified = 'Yes';
             return;
         }
+
     });
     return `${Buffer.byteLength(page, charsetPage.charset)} Bytes - specified charset: ${charsetPage.specified} (${charsetPage.charset})`
 }

@@ -84,6 +84,15 @@ const isLocalFile = (pathFile) => {
     return ((pathFile.charAt(0) == '~') || (pathFile.charAt(0) == '.'));
 }
 
+const fetchUrlFile = async (pathFile) => {
+    try {
+        const fetchContent = await fetch(pathFile);
+        return await fetchContent.text();
+    } catch (err) {
+        throw `cannot be fetch: ${pathFile}`;
+    }
+}
+
 const fetchLocalFile = async (pathFile) => {
     if (runingInWindows)
         pathFile = pathFile.replace('~', '.');
@@ -91,15 +100,6 @@ const fetchLocalFile = async (pathFile) => {
         return fs.readFileSync(pathFile).toString();
     } catch (err) {
         throw `cannot be read: ${pathFile}`;
-    }
-}
-
-const fetchUrlFile = async (pathFile) => {
-    try {
-        const fetchContent = await fetch(pathFile);
-        return await fetchContent.text();
-    } catch (err) {
-        throw `cannot be fetch: ${pathFile}`;
     }
 }
 

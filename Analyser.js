@@ -22,7 +22,7 @@ module.exports = class Analyser {
                     const direction = line[1].trim();
                     const page = await getPage(direction);
                     const dependenciesOfPage = getDependencies(page);
-                    const lengthOfPageInBytes = getLengthOfPage(page);
+                    const lengthOfPageInBytes = getLengthOfPageInBytes(page);
                     this.pagesLengthInBytes.push({ website, lengthOfPageInBytes });
                     dependenciesOfPage.forEach(dependency => {
                         this.dependenciesPerPage.push({ website, dependency });
@@ -80,8 +80,8 @@ const getPage = async (direction) => {
     return (isLocalFile(direction)) ? await fetchLocalFile(direction) : await fetchUrlFile(direction);
 }
 
-const isLocalFile = (pathFile) => {
-    return ((pathFile.charAt(0) == '~') || (pathFile.charAt(0) == '.'));
+const isLocalFile = (direction) => {
+    return ((direction.charAt(0) == '~') || (direction.charAt(0) == '.'));
 }
 
 const fetchUrlFile = async (pathFile) => {
@@ -107,7 +107,18 @@ const runingInWindows = () => {
     return (os.platform() == 'win32');
 }
 
-const getLengthOfPage = (page) => {
+const getDependencies = (page) => {
+    const $ = cheerio.load(page)
+    const dependencies = [];
+    $('script').each((i, element) => {
+        if (element.attribs.src != undefined) {
+            dependencies.push(element.attribs.src.replace(/\?.*/, '').replace(/\r/, '').split('/').pop())
+        }
+    });
+    return dependencies;
+}
+
+const getLengthOfPageInBytes = (page) => {
     const $ = cheerio.load(page)
     let charsetPage = {
         charset : 'utf8',
@@ -128,13 +139,3 @@ const getLengthOfPage = (page) => {
     return `${Buffer.byteLength(page, charsetPage.charset)} Bytes - specified charset: ${charsetPage.specified} (${charsetPage.charset})`
 }
 
-const getDependencies = (page) => {
-    const $ = cheerio.load(page)
-    const dependencies = [];
-    $('script').each((i, element) => {
-        if (element.attribs.src != undefined) {
-            dependencies.push(element.attribs.src.replace(/\?.*/, '').replace(/\r/, '').split('/').pop())
-        }
-    });
-    return dependencies;
-}
